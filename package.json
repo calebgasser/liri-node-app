@@ -1,0 +1,22 @@
+{
+  "name": "liri-node-app",
+  "version": "1.0.0",
+  "description": "Simple bot to pull info from certain api",
+  "main": "liri.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/calebgasser/liri-node-app.git"
+  },
+  "author": "Caleb Gasser",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/calebgasser/liri-node-app/issues"
+  },
+  "homepage": "https://github.com/calebgasser/liri-node-app#readme",
+  "dependencies": {
+    "request": "^2.81.0"
+  }
+}

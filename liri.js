@@ -104,6 +104,16 @@ var movieThis = function(movie) {
   if(!movie){
     movie = 'Mr. Nobody';
   }
+  input = '';
+  for(args in process.argv){
+    if(args > 2){
+      input +=  process.argv[args];
+      if(args < process.argv.length-1){
+        input +=  "+";
+      }
+    }
+  }
+  movie = input;
   request('http://www.omdbapi.com/?apikey=' + keys.ombdKeys.api_key +'&t=' + movie,function(err, res, body){
     var output = '';
     let data = JSON.parse(body);

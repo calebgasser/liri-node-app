@@ -12,5 +12,5 @@ exports.spotifyKeys = {
 }
 
 exports.ombdKeys = {
-
+  api_key: '40e9cece'
 }

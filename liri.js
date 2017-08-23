@@ -1,6 +1,7 @@
 var keys = require('./keys');
 var request = require('request');
 var Spotify = require('node-spotify-api');
+var fs = require('fs');
 
 var command = process.argv[2];
 var input = process.argv[3];
@@ -9,7 +10,23 @@ var spotify = new Spotify({
   secret: 'a340e7f621994effb5b8ba1b278f62bd'
 });
 
+var log = function(data){
+  var newData = {
+    command: command,
+    output: data
+  }
+  if(input){
+    newData.command += (' ' + input);
+  }
+  fs.appendFile('./log.txt', JSON.stringify(newData) + '\n', (err)=>{
+    if(err){
+      console.log(err);
+    }
+  })
+}
+
 var myTweets = function() {
+  var output = '';
   let baseUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json?';
   let userId = 'screen_name=LiriBotter&';
   let count = 'count=20';
@@ -40,14 +57,17 @@ var myTweets = function() {
       }
       messages = JSON.parse(body)
       for (message in messages) {
-        console.log(messages[message].created_at);
-        console.log(messages[message].text + '\n\n');
+        output += messages[message].created_at + '\n';
+        output += messages[message].text + '\n';
       }
+      console.log(output);
+      log(output);
     })
   })
 }
 
 var spotifyThisSong = function(song) {
+  var output = '';
   if (!song) {
     song = 'The Sign'
   }
@@ -60,19 +80,21 @@ var spotifyThisSong = function(song) {
     for (obj in trackData) {
       if (obj === 'artists') {
         for (artist in trackData[obj]) {
-          console.log('Artist: ' + trackData[obj][artist].name);
+          output += 'Artist: ' + trackData[obj][artist].name + '\n';
         }
       }
       if (obj === 'name') {
-        console.log('Song Name: ' + trackData[obj]);
+        output += 'Song Name: ' + trackData[obj] + '\n';
       }
       if (obj === 'album') {
-        console.log('Album: ' + trackData[obj].name);
+        output += 'Album: ' + trackData[obj].name + '\n';
       }
       if (obj === 'external_urls') {
-        console.log('Link: ' + trackData[obj].spotify);
+        output += 'Link: ' + trackData[obj].spotify + '\n';
       }
     }
+    console.log(output);
+    log(output);
   }).catch(function(err) {
     console.log(err);
   })
@@ -82,23 +104,26 @@ var movieThis = function(movie) {
   if(!movie){
     movie = 'Mr. Nobody';
   }
-  request('http://www.omdbapi.com/?apikey=40e9cece&t=' + movie,function(err, res, body){
+  request('http://www.omdbapi.com/?apikey=' + keys.ombdKeys.api_key +'&t=' + movie,function(err, res, body){
+    var output = '';
     let data = JSON.parse(body);
     if(data.Response !== 'False'){
-      console.log('Title: ' + data.Title);
-      console.log('Year: ' + data.Year);
+      output += 'Title: ' + data.Title + '\n';
+      output += 'Year: ' + data.Year + '\n';
       for(rating in data.Ratings){
         if(data.Ratings[rating].Source === 'Rotten Tomatoes'){
-          console.log('Rotten Tomatoes: ' + data.Ratings[rating].Value);
+          output += 'Rotten Tomatoes: ' + data.Ratings[rating].Value + '\n';
         }
         if(data.Ratings[rating].Source === 'Internet Movie Database'){
-          console.log('IMDB: ' + data.Ratings[rating].Value);
+          output += 'IMDB: ' + data.Ratings[rating].Value + '\n';
         }
       }
-      console.log('Country: ' + data.Country);
-      console.log('Language: ' + data.Language);
-      console.log('Plot: ' + data.Plot);
-      console.log('Actors: ' + data.Actors);
+      output += 'Country: ' + data.Country + '\n';
+      output += 'Language: ' + data.Language + '\n';
+      output += 'Plot: ' + data.Plot + '\n';
+      output += 'Actors: ' + data.Actors + '\n';
+      console.log(output);
+      log(output);
     } else {
       console.log(data.Error);
     }
@@ -106,22 +131,40 @@ var movieThis = function(movie) {
 }
 
 var doWhatItSays = function() {
-
+  fs.readFile('./random.txt', 'utf8', (err, data)=>{
+    commands = data.split('\n');
+    for(com in commands){
+      var currentCommand = '';
+      var input = '';
+      var line = commands[com].trim('\r');
+      if(line.includes(' ')){
+        currentCommand = line.substr(0, line.indexOf(' '));
+        input = line.substr(line.indexOf(' ') + 1);
+      } else {
+        currentCommand = line;
+      }
+      runCommand(currentCommand, input);
+    }
+  })
 }
 
-switch (command) {
-  case 'my-tweets':
-    myTweets();
-    break;
-  case 'spotify-this-song':
-    spotifyThisSong(input);
-    break;
-  case 'movie-this':
-    movieThis(input);
-    break;
-  case 'do-what-it-says':
-    doWhatItSays(input);
-    break;
-  default:
-    break;
+var runCommand = function(com, inp){
+  switch (com) {
+    case 'my-tweets':
+      myTweets();
+      break;
+    case 'spotify-this-song':
+      spotifyThisSong(inp);
+      break;
+    case 'movie-this':
+      movieThis(inp);
+      break;
+    case 'do-what-it-says':
+      doWhatItSays(inp);
+      break;
+    default:
+      break;
+  }
 }
+
+runCommand(command, input);
